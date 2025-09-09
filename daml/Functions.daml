@@ -1,0 +1,16 @@
+module Functions where
+
+import Daml.Script
+
+-- | FUNCTION TYPES
+-- | function types in daml can be spotted by looking for `->`
+-- | which reads as "maps to"
+-- | E.g Int -> Int maps an integer to an integer
+
+increment : Int -> Int -- | Function declaration
+increment n = n + 1
+
+
+test_functions = script do
+    let value = increment 7
+    assert (value == 8)
