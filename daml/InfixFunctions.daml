@@ -1,0 +1,20 @@
+module InfixFunctions where
+import Daml.Script
+
+-- | INFIX FUNCTIONS
+-- | Functions that start with a symbol are infix by default
+-- | which means they can be used between two arguments
+-- | E.g 1 + 2
+-- | The rules for converting between normal and infix functions are simple
+-- | Wrap an infix function in parentheses to use it as a normal function
+-- | And wrap a normal function in backticks to use it as an infix function
+
+-- | ******** Normal function ******
+add : Int -> Int -> Int
+add m n  =  m + n 
+
+test_infix_functions = script do
+    -- | Test normal to infix
+    -- | wrap in backticks to use as infix function
+    let infix_sum = 3 `add` 4
+    assert (infix_sum == 7)
