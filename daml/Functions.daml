@@ -10,7 +10,16 @@ import Daml.Script
 increment : Int -> Int -- | Function declaration
 increment n = n + 1
 
+-- | There is more than one ->
+-- | There is a type parameter `a` with constraint `Additive`
+-- | `a -> a ->a`  is equivalent to `a -> (a -> a)`
+-- | Using the "maps to" way of reading ->, we get `a` maps to
+-- | a function that maps `a` to `a`
+-- add : Additive a => a -> a -> a
+
 
 test_functions = script do
     let value = increment 7
     assert (value == 8)
+
+    
