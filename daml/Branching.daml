@@ -1,0 +1,34 @@
+module Branching where
+import Daml.Script
+
+-- | CASE
+-- | Branching with case
+
+boolToInt : Bool -> Int
+boolToInt b = case b of
+    True -> 1
+    False -> 0
+
+-- | Branching with if ... else expression
+-- | This expression is equivalent to `case`
+-- | but can be easier to read
+boolToInt2 : Bool -> Int
+boolToInt2 b = if b
+    then 1
+    else 0
+
+test_branching = script do
+
+    -- | Test the case approach
+    let bool_true_1 = boolToInt True
+    assert (bool_true_1 == 1)
+
+    let bool_false_1 = boolToInt False
+    assert (bool_false_1 == 0)
+
+    -- | Test the if ... else approach
+    let bool_true_2 = boolToInt2 True
+    assert (bool_true_2 == 1)
+
+    let bool_false_2 = boolToInt2 False
+    assert (bool_false_2 == 0)
