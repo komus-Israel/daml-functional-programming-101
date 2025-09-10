@@ -1,6 +1,7 @@
 module ControlFlow where
 import Daml.Script
 
+-- | *************** BRANCHING ****************
 -- | CASE
 -- | Branching with case
 
@@ -17,9 +18,17 @@ boolToInt2 b = if b
     then 1
     else 0
 
-
+-- | *************** CONTROL FLOW AS EXPRESSION ****************
+-- | `case` and `if ... else` expressions are control flow in the sense that they short-circuit
+doError : Text -> Bool
+doError text = case text of
+    "True" -> True
+    "False" -> False
+    _ -> error ("Not a boolean: " <> text)
 
 test_branching = script do
+
+    -- | *************** BRANCHING: TEST ****************
 
     -- | Test the case approach
     let bool_true_1 = boolToInt True
@@ -34,3 +43,10 @@ test_branching = script do
 
     let bool_false_2 = boolToInt2 False
     assert (bool_false_2 == 0)
+
+    -- | *************** CONTROL FLOW AS EXPRESSION: TEST ****************
+    let text_true = doError "True"
+    assert (text_true == True)
+
+    let text_false = doError "False"
+    assert (text_false == False)
