@@ -1,4 +1,4 @@
-module Branching where
+module ControlFlow where
 import Daml.Script
 
 -- | CASE
@@ -16,6 +16,8 @@ boolToInt2 : Bool -> Int
 boolToInt2 b = if b
     then 1
     else 0
+
+
 
 test_branching = script do
 
