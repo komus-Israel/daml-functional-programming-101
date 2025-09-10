@@ -1,0 +1,14 @@
+module Lambdas where
+import Daml.Script
+
+-- | LAMBDAS
+-- | Daml supports inline functions called lambdas
+-- | They are defined using the (\x y z -> ...)
+-- | For example, the increment function would be (\n -> n + 1)
+increment = (\n -> n + 1)
+
+
+test_lambdas = script do
+    let value = increment 7
+    assert (value == 8)
+    
