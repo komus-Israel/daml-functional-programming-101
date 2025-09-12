@@ -1,0 +1,129 @@
+module TokenExample where
+
+import Daml.Script
+
+data HoldingView = HoldingView with
+  owner  : Party
+  amount : Decimal
+    deriving (Eq, Show)
+
+--------------------------------------------------
+-- 1) Interface + Token
+--------------------------------------------------
+interface Holding where
+  viewtype HoldingView
+
+template Token
+  with
+    issuer : Party
+    owner  : Party
+    amount : Decimal
+  where
+    signatory issuer
+    observer owner
+
+    --  Implement interface
+    interface instance Holding for Token where
+      view = HoldingView with
+        owner = owner
+        amount = amount
+
+--------------------------------------------------
+-- 2) TokenManager: on-ledger choice that accepts
+--    a list of ContractId Holding and sums them.
+--    It uses fetchFromInterface inside the Update.
+--------------------------------------------------
+template TokenManager
+  with
+    issuer : Party
+  where
+    signatory issuer
+
+    choice GetBalanceFromCids : Decimal
+      with
+        owner : Party
+        holdings : [ContractId Holding]    -- passed in by the caller (script/client)
+      controller issuer
+      do
+        -- For each interface contract id try to fetch & convert it to the Token template.
+        -- fetchFromInterface @Token @Holding :: ContractId Holding -> Update (Optional (ContractId Token, Token))
+        results <- mapA (\cid -> fetchFromInterface @Token @Holding cid) holdings
+
+        -- Keep only successfully fetched Token payloads
+        let tokens = foldr
+              (\o acc -> case o of
+                           Some (_, t) -> t :: acc
+                           None -> acc)
+              []
+              results
+
+        let total = sum [t.amount | t <- tokens]
+        return total
+
+--------------------------------------------------
+-- 3) Script: create tokens, query by party, and
+--    demonstrate both off-ledger sum and calling the
+--    on-ledger choice with the ContractIds.
+--------------------------------------------------
+testScript : Script ()
+testScript = script do
+  alice  <- allocateParty "Alice"
+  bob    <- allocateParty "Bob"
+  issuer <- allocateParty "Issuer"
+
+  -- create manager
+  managerCid <- submit issuer do
+    createCmd TokenManager with
+      issuer = issuer
+
+  -- create some Token contracts
+  _ <- submit issuer do
+    createCmd Token with
+      issuer = issuer
+      owner  = alice
+      amount = 50.0
+
+  _ <- submit issuer do
+    createCmd Token with
+      issuer = issuer
+      owner  = alice
+      amount = 30.0
+
+  _ <- submit issuer do
+    createCmd Token with
+      issuer = issuer
+      owner  = bob
+      amount = 100.0
+
+  -- === OFF-LEDGER: query all Holdings visible to alice ===
+  -- NOTE: queryInterface @Holding alice returns [(ContractId Holding, Optional HoldingView)]
+  allHoldings <- queryInterface @Holding alice
+  debug ("allHoldings (raw) = " <> show allHoldings)
+
+  -- extract alice's ContractIds and amounts (handle Optional view)
+  let aliceCids = foldr
+        (\(cid, ov) acc -> case ov of
+            Some hv -> if hv.owner == alice then cid :: acc else acc
+            None    -> acc)
+        []
+        allHoldings
+
+  let aliceAmounts = foldr
+        (\(_, ov) acc -> case ov of
+            Some hv -> if hv.owner == alice then hv.amount :: acc else acc
+            None    -> acc)
+        []
+        allHoldings
+
+  debug ("aliceAmounts (off-ledger) = " <> show aliceAmounts)
+  debug ("alice total (off-ledger) = " <> show (sum aliceAmounts))
+
+  -- === ON-LEDGER: pass ContractIds to TokenManager choice ===
+  aliceBal <- submit issuer do
+    exerciseCmd managerCid (GetBalanceFromCids with
+      owner = alice
+      holdings = aliceCids)
+
+  debug ("Alice balance via on-ledger choice = " <> show aliceBal)
+
+  return ()
