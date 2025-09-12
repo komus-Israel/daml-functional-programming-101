@@ -1,0 +1,18 @@
+module Looping.Foldl where
+
+import Daml.Script
+
+-- | Folds correspond to looping wit an explicit iterator: `for` and `forEach` loops
+-- | in procedural languages.
+-- | Daml has `foldl`. The `l` stands for left, which means it processes the list from the left
+-- | There is a corresponding `foldr` which processes from the right
+
+foldL : (b -> a -> b) -> b -> [a] -> b
+-- ^  Fold definition
+-- ^ `b` is the state
+-- ^ `a` is an item
+-- ^ First argument is a function that takes a state and an item and returns a new state
+-- ^ It then takes a state, which is the initial state, and a list of items, which is the iterator
+-- ^ The result is a state again
+
+test_foldl : Script ()
