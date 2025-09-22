@@ -24,16 +24,31 @@ sumArrays array_1 array_2 =
 multiplyElements : [Int] -> Int -> [Int]
 multiplyElements array factor =
     foldl(\_array _item -> (_item * factor) :: _array) [] array
-   
+
+-- | Example on map
+sumArrays_map : [Int] -> [Int] -> [Int]
+sumArrays_map array_1 array_2 =
+    map(\(x, y) -> (x + y)) (zip array_1 array_2)
+
+multiplyElements_map array factor = 
+    map(\x -> (x * factor)) array
 
 
-test_foldl : Script ([Int], [Int])
+test_foldl : Script ([Int], [Int], [Int], [Int])
 test_foldl = do
 
     let array_1 = [2, 4, 5, 6]
     let array_2 = [19, 7, 8, 9, 8]
 
     let sum_arrays = sumArrays array_1 array_2
+    let sum_arrays_map = sumArrays_map array_1 array_2
+
     let multiply_elements = multiplyElements array_1 3
+    let multiply_elements_map = multiplyElements_map array_1 3
     
-    return (sum_arrays, multiply_elements)
+    return (
+        sum_arrays, 
+        multiply_elements, 
+        sum_arrays_map,
+        multiply_elements_map
+        )
